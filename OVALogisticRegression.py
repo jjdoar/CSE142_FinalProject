@@ -59,13 +59,13 @@ class OVALogisticRegression:
 
     # Return the predicted class for instance x 
     def predict(self, x):
-        scores = []
+        scores = [0] * 5
         for i in range(5):
             scores[i] = self.probPred1(x, i)
         
         return scores.index(max(index)) + 1
 
-    # Takes in an array of LRInstances
+    # Takes in an array of Instances
     def printPerformance(self, instances):
         TP = [0] * 5
         TN = [0] * 5
@@ -78,13 +78,13 @@ class OVALogisticRegression:
                 x = instances[i].x
                 prediction = self.predict(x)
 
-                if label == 1 and k == prediction:
+                if label == 1 and k + 1 == prediction:
                     TP[k] += 1
-                elif label == 1 and k != prediction:
+                elif label == 1 and k + 1 != prediction:
                     FN[k] += 1
-                elif label == 0 and k == prediction:
+                elif label == 0 and k + 1 == prediction:
                     TN[k] += 1
-                elif label == 0 and k != prediction:
+                elif label == 0 and k + 1 != prediction:
                     FN[k] += 1
 
         acc = [0] * 5
@@ -100,7 +100,7 @@ class OVALogisticRegression:
             print("")
         
 
-    # Takes in an array of LRInstance
+    # Takes in an array of Instance
     def train(self, instances):
         # Train 5 classifiers
         for k in range(5):
@@ -118,7 +118,7 @@ class OVALogisticRegression:
     def test(self, instances):
         print("Hello world")
 
-class LRInstance:
+class Instance:
     def __init__(self, label, x):
         self.label = label
         self.x = x
@@ -130,17 +130,15 @@ def readDataSet(path, start, end):
     with open(path) as jsonFile:
         data = json.load(jsonFile)
         
-        for i in range(start, end):
+        for i in range(start, end): 
             label = data[i]["stars"]
             x = extractFeatures(data[i])
 
-            instance = LRInstance(label, x)
+            instance = Instance(label, x)
             instances.append(instance)
 
     return instances
-            
-        
-
+           
 def main():
     global keywords
     with open('./keywords.csv', 'r') as kwords: # keywords.csv is a csv file that lists each word feature to extract
@@ -148,12 +146,12 @@ def main():
         keywords = list(reader)
     
     # Read in data
-    # Both data instances are arrays of LRInstances
+    # Both data instances are arrays of Instances
+    print("Extracting training instances")
     trainInstances = readDataSet("../data_train.json", 0, 1000)
-    print("Extracted training instances")
+    print("Extracting testing instances")
     testInstances = readDataSet("../data_train.json", 1000, 1100)
-    print("Extracted testing instances")
-
+    
     n = len(trainInstances[0].x)
     OVALR = OVALogisticRegression(n)
     
