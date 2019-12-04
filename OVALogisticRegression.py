@@ -96,7 +96,7 @@ class OVALogisticRegression:
             print("Accuracy" + str(acc[k]))
             print("Confusion Matrix")
             print(str(TP[k]) + "   " + str(FN[k]))
-            print(str(FP[k]) + "   " + str(FN[k]))
+            print(str(FP[k]) + "   " + str(TN[k]))
             print("")
         
 
@@ -148,9 +148,9 @@ def main():
     # Read in data
     # Both data instances are arrays of Instances
     print("Extracting training instances")
-    trainInstances = readDataSet("../data_train.json", 0, 1000)
+    trainInstances = readDataSet("data_train.json", 0, 100)
     print("Extracting testing instances")
-    testInstances = readDataSet("../data_train.json", 1000, 1100)
+    testInstances = readDataSet("data_train.json", 1000, 1100)
     
     n = len(trainInstances[0].x)
     OVALR = OVALogisticRegression(n)
