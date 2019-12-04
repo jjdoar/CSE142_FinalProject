@@ -41,8 +41,11 @@ class OVALogisticRegression:
         self.rate = 200
         self.iterations = 200
 
-    def sigmoid(self, z):
-        return 1 / (1 + math.exp(-z))
+    def sigmoid(self, x):
+        try:
+            return 1 / (1 + math.exp(-x))
+        except:
+            return 0
 
     def activation(self, x, k):
         dot = 0.0
@@ -58,7 +61,7 @@ class OVALogisticRegression:
     def predict(self, x):
         scores = []
         for i in range(5):
-            scores[i] = probPred1(x, i)
+            scores[i] = self.probPred1(x, i)
         
         return scores.index(max(index)) + 1
 
@@ -71,7 +74,7 @@ class OVALogisticRegression:
         
         for k in range(5):
             for i in range(len(instances)):
-                label = 1 if instances[j].label == k + 1 else 0
+                label = 1 if instances[i].label == k + 1 else 0
                 x = instances[i].x
                 prediction = self.predict(x)
 
@@ -86,9 +89,9 @@ class OVALogisticRegression:
 
         acc = [0] * 5
         for i in range(5):
-            acc[i] = (TP[i] + TN[i]) len(instances)
+            acc[i] = (TP[i] + TN[i]) / len(instances)
 
-        for k in range(5):
+        for k in range(5):  
             print("Classifier for class: " + str(k + 1.0))
             print("Accuracy" + str(acc[k]))
             print("Confusion Matrix")
@@ -101,6 +104,7 @@ class OVALogisticRegression:
     def train(self, instances):
         # Train 5 classifiers
         for k in range(5):
+            print("Training classifier: " + str(k + 1))
             for i in range(self.iterations):
                 for j in range(len(instances)):
                     label = 1 if instances[j].label == k + 1 else 0
@@ -146,15 +150,15 @@ def main():
     # Read in data
     # Both data instances are arrays of LRInstances
     trainInstances = readDataSet("../data_train.json", 0, 1000)
+    print("Extracted training instances")
     testInstances = readDataSet("../data_train.json", 1000, 1100)
-
-    #print(len(trainInstances))
-    #print(len(testInstances))
+    print("Extracted testing instances")
 
     n = len(trainInstances[0].x)
     OVALR = OVALogisticRegression(n)
     
     # Train
+    print("Training")
     OVALR.train(trainInstances)
 
     # Print Accuracy
