@@ -31,6 +31,11 @@ def extractFeatures(entry):
                 break
     return wordData
 
+class Instance:
+    def __init__(self, label, x):
+        self.label = label
+        self.x = x
+
 class OVALogisticRegression:
     # Constructor
     def __init__(self, n):
@@ -38,8 +43,8 @@ class OVALogisticRegression:
         self.weights = [0] * 5
         for i in range(5):
             self.weights[i] = [0] * n
-        self.rate = 200
-        self.iterations = 200
+        self.rate = 0.01
+        self.iterations = 100
 
     def sigmoid(self, x):
         try:
@@ -63,7 +68,7 @@ class OVALogisticRegression:
         for i in range(5):
             scores[i] = self.probPred1(x, i)
         
-        return scores.index(max(index)) + 1
+        return scores.index(max(scores)) + 1
 
     # Takes in an array of Instances
     def printPerformance(self, instances):
@@ -93,19 +98,32 @@ class OVALogisticRegression:
 
         for k in range(5):  
             print("Classifier for class: " + str(k + 1.0))
-            print("Accuracy" + str(acc[k]))
+            print("Accuracy: " + str(acc[k]))
             print("Confusion Matrix")
             print(str(TP[k]) + "   " + str(FN[k]))
             print(str(FP[k]) + "   " + str(TN[k]))
             print("")
-        
+
+        score = 0
+        error = [0] * len(instances)
+        for i in range(len(instances)):
+            label = instances[i].label
+            x = instances[i].x
+            prediction = self.predict(x)
+
+            if label == prediction:
+               score += 1
+            else:
+                error[i] = abs(label - prediction)
+        print("Correctly classified: " + str(score) + "/" + str(len(instances)) + ", " + str(score / len(instances)))
+        print("Average error: " + str(sum(error) / len(error)))
 
     # Takes in an array of Instance
     def train(self, instances):
         # Train 5 classifiers
         for k in range(5):
-            print("Training classifier: " + str(k + 1))
             for i in range(self.iterations):
+                print("Training classifier: " + str(k + 1) + "  Iteration: " + str(i))
                 for j in range(len(instances)):
                     label = 1 if instances[j].label == k + 1 else 0
                     x = instances[j].x
@@ -114,29 +132,59 @@ class OVALogisticRegression:
                     for w in range(len(self.weights[k])):
                         self.weights[k][w] += self.rate * gradient * x[w]
 
+        with open("OVALR_Weights.csv", mode = "w", newline = "") as csv_file:
+            writer = csv.writer(csv_file)
+            writer.writerow(["Classifier 1", "Classifier 2", "Classifier 3", "Classifier 4", "Classifier 5"])
+
+            for i in range(len(self.weights[0])):
+                writer.writerow([self.weights[0][i], self.weights[1][i], self.weights[2][i], self.weights[3][i], self.weights[4][i]])
+
     # Outputs test results to a file
     def test(self, instances):
-        print("Hello world")
-
-class Instance:
-    def __init__(self, label, x):
-        self.label = label
-        self.x = x
+        with open("OVALR_Predictions.csv", mode = "w", newline = "") as csv_file:
+            writer = csv.writer(csv_file)
+            writer.writerow(["Predictions"])
+            
+            for i in instances:
+                x = i.x
+                prediction = self.predict(x)
+                writer.writerow([prediction])
 
 # Return an array of LRInstances 
-def readDataSet(path, start, end):
+def readDataSetPartial(path, start, end):
     instances = []
 
     with open(path) as jsonFile:
         data = json.load(jsonFile)
         
-        for i in range(start, end): 
-            label = data[i]["stars"]
+        for i in range(start, end):
+            try:
+                label = data[i]["stars"]
+            except:
+                label = 0
             x = extractFeatures(data[i])
 
             instance = Instance(label, x)
             instances.append(instance)
 
+    return instances
+
+def readDataSet(path):
+    instances = []
+
+    with open(path) as jsonFile:
+        data = json.load(jsonFile)
+
+        for i in range(len(data)):
+            try:
+                label = data[i]["stars"]
+            except:
+                label = 0
+            x = extractFeatures(data[i])
+
+            instance = Instance(label, x)
+            instances.append(instance)
+            
     return instances
            
 def main():
@@ -148,9 +196,9 @@ def main():
     # Read in data
     # Both data instances are arrays of Instances
     print("Extracting training instances")
-    trainInstances = readDataSet("data_train.json", 0, 100)
+    trainInstances = readDataSet("data_train.json")
     print("Extracting testing instances")
-    testInstances = readDataSet("data_train.json", 1000, 1100)
+    testInstances = readDataSet("data_test_wo_label.json")
     
     n = len(trainInstances[0].x)
     OVALR = OVALogisticRegression(n)
@@ -160,11 +208,13 @@ def main():
     OVALR.train(trainInstances)
 
     # Print Accuracy
-    print("Training Data Performance")
+    print("Training Data Performance:")
     OVALR.printPerformance(trainInstances)
 
-    print("Test Data Performance")
-    OVALR.printPerformance(testInstances)
+    # Test
+    OVALR.test(testInstances)
+
+
     
 main()
 
