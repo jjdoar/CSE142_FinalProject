@@ -45,8 +45,8 @@ def checkAccuracy(X_test, Y_test):
     filename = 'finalized_model.sav'
     loaded_model = joblib.load(filename)
     result = loaded_model.score(X_test, Y_test)
-    # predictions = loaded_model.predict(X_test)
-    # prediction = pd.DataFrame(predictions, columns=['Predictions']).to_csv('prediction.csv',index=False)
+    predictions = loaded_model.predict(X_test)
+    prediction = pd.DataFrame(predictions, columns=['Predictions']).to_csv('prediction.csv',index=False)
     print("Accuracy: " + str(result))
     file1 = open("accuracy.txt","w+") 
     file1.write(str(result))
@@ -64,9 +64,9 @@ def train():
     text = vectorizer.transform(text)
     text_train,text_test,star_train,star_test = train_test_split(text,stars,test_size=0.3,random_state=42)
     ## Creates and saves model
-    # bayes(text_train,star_train)
+    bayes(text_train,star_train)
     ## Checks Accuracy on original dataset
-    # accuracy = checkAccuracy(text_test,star_test)
+    accuracy = checkAccuracy(text_test,star_test)
     return vectorizer
 
 def test(vectorizer):
